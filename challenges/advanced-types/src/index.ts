@@ -23,8 +23,7 @@ console.log(
   Object.assign({ a: 44, b: "hello" }, { a: "from second object", c: 99 })
 );
 
-// IMPLEMENT ME
-export type Mix<A, B> = never;
+export type Mix<A, B> = B & Pick<A, Exclude<keyof A, keyof B>>;
 
 /**
  * - ExtractPropertyNamesAssignableTo: obtain the names of properties assignable to a type
@@ -47,9 +46,9 @@ interface Foo {
   x: string;
   y: number;
 }
-
-// IMPLEMENT ME
-export type ExtractPropertyNamesAssignableTo<T, S> = never;
+export type ExtractPropertyNamesAssignableTo<T, S> = {
+  [K in keyof T]: Record<K, S> extends Pick<T, K> ? K : never
+}[keyof T];
 
 type X = ExtractPropertyNamesAssignableTo<
   Window,
@@ -68,9 +67,9 @@ type X = ExtractPropertyNamesAssignableTo<
  * 'b'
  *
  */
-
- // IMPLEMENT ME
-export type OptionalPropertyNamesOf<T> = never;
+export type OptionalPropertyNamesOf<T> = {
+  [K in keyof T]: T extends Record<K, T[K]> ? never : K
+}[keyof T];
 
 /**
  * - RequiredPropertyNamesOf: Extract the property names of an object type that are required
@@ -83,6 +82,6 @@ export type OptionalPropertyNamesOf<T> = never;
  * // results in
  * 'a'
  */
-
- // IMPLEMENT ME
-export type RequiredPropertyNamesOf<T> = never;
+export type RequiredPropertyNamesOf<T> = {
+  [K in keyof T]: T extends Record<K, T[K]> ? K : never
+}[keyof T];

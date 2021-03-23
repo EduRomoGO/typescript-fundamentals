@@ -1,12 +1,33 @@
-export class AddressBook {
-  contacts = [];
+interface Contact {
+  firstName: string;
+  middleName?: string;
+  lastName: string;
+  salutation?: string;
+  addresses: {
+    [addressName: string]: {
+      houseNumber: number;
+      postalCode: number;
+      street: string;
+      city: string;
+      country: string;
+      state: string;
+    };
+  };
+  phones: {
+    [phoneName: string]: string;
+  };
+  email?: string;
+}
 
-  addContact(contact) {
+export class AddressBook {
+  contacts: Contact[] = [];
+
+  addContact(contact: Contact) {
     this.contacts.push(contact);
   }
 
-  findContactByName(filter) {
-    return this.contacts.filter(c => {
+  findContactByName(filter: { firstName?: string; lastName?: string }) {
+    return this.contacts.filter((c) => {
       if (
         typeof filter.firstName !== "undefined" &&
         c.firstName !== filter.firstName
@@ -24,33 +45,29 @@ export class AddressBook {
   }
 }
 
-export function formatDate(date) {
-  return (
-    date
-      .toISOString()
-      .replace(/[-:]+/g, "")
-      .split(".")[0] + "Z"
-  );
+export function formatDate(date: Date) {
+  return date.toISOString().replace(/[-:]+/g, "").split(".")[0] + "Z";
 }
 
-function getFullName(contact) {
+function getFullName(contact: Contact) {
   return [contact.firstName, contact.middleName, contact.lastName]
     .filter(Boolean)
     .join(" ");
 }
 
-export function getVcardText(contact, date = new Date()) {
+export function getVcardText(contact: Contact, date: Date = new Date()) {
   const parts = [
     "BEGIN:VCARD",
     "VERSION:2.1",
-    `N:${contact.lastName};${contact.firstName};${contact.middleName ||
-      ""};${contact.salutation || ""}`,
+    `N:${contact.lastName};${contact.firstName};${contact.middleName || ""};${
+      contact.salutation || ""
+    }`,
     `FN:${getFullName(contact)}`,
     ...Object.keys(contact.phones).map(
-      phName => `TEL;${phName.toUpperCase()};VOICE:${contact.phones[phName]}`
+      (phName) => `TEL;${phName.toUpperCase()};VOICE:${contact.phones[phName]}`
     ),
     ...Object.keys(contact.addresses)
-      .map(addrName => {
+      .map((addrName) => {
         const address = contact.addresses[addrName];
         if (address) {
           return `ADR;${addrName.toUpperCase()}:;;${address.houseNumber} ${
@@ -66,13 +83,13 @@ export function getVcardText(contact, date = new Date()) {
           return "";
         }
       })
-      .filter(Boolean)
+      .filter(Boolean),
   ];
 
   if (contact.email) {
     parts.push(`EMAIL:${contact.email}`);
   }
-  const d = new Date();
+
   parts.push(`REV:${formatDate(date)}`);
   parts.push("END:VCARD");
   return parts.join("\n");
